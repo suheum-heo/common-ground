@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Common Ground</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f7f6f3;
+      --surface:     #ffffff;
+      --border:      #e2e0da;
+      --text:        #2c2b28;
+      --muted:       #7a7770;
+      --accent:      #5c6b7a;
+      --accent-soft: #eef0f3;
+      --radius:      12px;
+      --shadow:      0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
+
+      --green-bg:    #edf5ee; --green-border: #b5d6b8; --green-head: #2d6a38;
+      --yellow-bg:   #fdf8ed; --yellow-border:#e6d49a; --yellow-head: #7a5c12;
+      --gray-bg:     #f4f3f1; --gray-border:  #d0cec9; --gray-head:   #4a4845;
+      --blue-bg:     #eef3fb; --blue-border:  #b3caf0; --blue-head:   #1e3f72;
+      --purple-bg:   #f3eefb; --purple-border:#c8b3f0; --purple-head: #3a1e72;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    header {
+      text-align: center;
+      padding: 48px 24px 32px;
+    }
+    header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -.03em; }
+    header p  { margin-top: 8px; color: var(--muted); font-size: 1rem; max-width: 480px; margin-inline: auto; }
+    .divider  { width: 44px; height: 3px; background: var(--accent); border-radius: 2px; margin: 18px auto 0; opacity: .45; }
+
+    main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* ── shared card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px 30px;
+    }
+    .card + .card { margin-top: 20px; }
+
+    /* ── form elements ── */
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field label {
+      font-size: .78rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted);
+    }
+    select, input[type="text"], textarea {
+      font-family: inherit; font-size: .95rem; color: var(--text);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 13px; outline: none;
+      transition: border-color .15s;
+    }
+    select { cursor: pointer; }
+    select:focus, input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 110px; line-height: 1.6; background: var(--accent-soft); }
+    textarea:focus { background: #fff; }
+    textarea::placeholder, input::placeholder { color: #b0ada6; }
+
+    /* ── buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      border: none; border-radius: 100px; padding: 12px 36px;
+      font-family: inherit; font-size: .97rem; font-weight: 600;
+      cursor: pointer; transition: background .15s, transform .1s, opacity .15s;
+    }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 2px 8px rgba(92,107,122,.22);
+    }
+    .btn-primary:hover:not(:disabled) { background: #4a5868; transform: translateY(-1px); }
+    .btn-primary:active:not(:disabled) { transform: none; }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-ghost {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); padding: 8px 22px; font-size: .87rem;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-row { display: flex; justify-content: center; margin-top: 22px; }
+    .btn-row.left { justify-content: flex-start; }
+
+    /* ── spinner ── */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin .65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-bar {
+      display: none; text-align: center; padding: 36px 0;
+      color: var(--muted); font-size: .94rem;
+    }
+    .spinner-muted {
+      display: inline-block; width: 20px; height: 20px; vertical-align: middle;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .65s linear infinite; margin-right: 9px;
+    }
+
+    /* ── error ── */
+    .error-box {
+      display: none; margin-top: 18px;
+      background: #fdf0f0; border: 1px solid #e8b4b4;
+      border-radius: var(--radius); padding: 13px 17px;
+      color: #8b3030; font-size: .88rem;
+    }
+
+    /* ── topic row ── */
+    .topic-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+    .topic-row select { flex: 1; min-width: 200px; }
+    .topic-row input  { flex: 1; min-width: 160px; }
+
+    /* ────────────────────────────────────────────────────────────────
+       VIEW: SETUP
+    ──────────────────────────────────────────────────────────────── */
+
+    /* ────────────────────────────────────────────────────────────────
+       VIEW: ROOM  (host waiting room)
+    ──────────────────────────────────────────────────────────────── */
+    #view-room { display: none; }
+    .room-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 28px;
+    }
+    @media (max-width: 640px) { .room-grid { grid-template-columns: 1fr; } }
+
+    .qr-panel {
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    .qr-panel img {
+      width: 200px; height: 200px;
+      border: 2px solid var(--border); border-radius: 10px;
+    }
+    .session-code {
+      font-size: 2.4rem; font-weight: 800; letter-spacing: .12em;
+      color: var(--accent); font-variant-numeric: tabular-nums;
+    }
+    .join-url {
+      font-size: .78rem; color: var(--muted);
+      word-break: break-all; text-align: center; max-width: 200px;
+    }
+
+    .room-right { display: flex; flex-direction: column; gap: 16px; }
+    .room-topic { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    .room-topic span { color: var(--muted); font-weight: 400; font-size: .9rem; display: block; }
+
+    .submissions-label {
+      font-size: .78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted); margin-bottom: 6px;
+    }
+    .submissions-list {
+      list-style: none; display: flex; flex-direction: column; gap: 8px;
+      max-height: 260px; overflow-y: auto;
+    }
+    .sub-item {
+      background: var(--accent-soft); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 13px;
+    }
+    .sub-item .sub-name { font-size: .9rem; font-weight: 600; }
+    .sub-item .sub-preview { font-size: .82rem; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub-empty { font-size: .9rem; color: var(--muted); font-style: italic; }
+
+    .count-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent); color: #fff; border-radius: 100px;
+      font-size: .78rem; font-weight: 700; padding: 2px 9px; margin-left: 7px;
+    }
+
+    /* ────────────────────────────────────────────────────────────────
+       VIEW: STUDENT
+    ──────────────────────────────────────────────────────────────── */
+    #view-student { display: none; }
+    .student-topic-box {
+      background: var(--accent-soft); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px; margin-bottom: 22px;
+    }
+    .student-topic-box .stlabel { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .student-topic-box .sttopic { font-size: 1.15rem; font-weight: 600; margin-top: 4px; }
+
+    .success-box {
+      display: none; text-align: center; padding: 40px 20px;
+    }
+    .success-icon { font-size: 3rem; margin-bottom: 14px; }
+    .success-box h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+    .success-box p  { color: var(--muted); font-size: .95rem; }
+
+    /* ────────────────────────────────────────────────────────────────
+       VIEW: RESULTS
+    ──────────────────────────────────────────────────────────────── */
+    #view-results { display: none; margin-top: 24px; }
+    .results-intro {
+      text-align: center; margin-bottom: 22px; color: var(--muted); font-size: .94rem;
+    }
+    .results-intro strong {
+      color: var(--text); font-size: 1.1rem; display: block; margin-bottom: 3px;
+    }
+    .result-cards { display: flex; flex-direction: column; gap: 15px; }
+
+    .rc {
+      border-radius: var(--radius); padding: 22px 24px; border: 1px solid;
+    }
+    .rc.green  { background: var(--green-bg);  border-color: var(--green-border); }
+    .rc.yellow { background: var(--yellow-bg); border-color: var(--yellow-border); }
+    .rc.gray   { background: var(--gray-bg);   border-color: var(--gray-border); }
+    .rc.blue   { background: var(--blue-bg);   border-color: var(--blue-border); }
+    .rc.purple { background: var(--purple-bg); border-color: var(--purple-border); }
+
+    .rc-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .73rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .09em; margin-bottom: 11px;
+    }
+    .rc.green  .rc-label { color: var(--green-head); }
+    .rc.yellow .rc-label { color: var(--yellow-head); }
+    .rc.gray   .rc-label { color: var(--gray-head); }
+    .rc.blue   .rc-label { color: var(--blue-head); }
+    .rc.purple .rc-label { color: var(--purple-head); }
+
+    .rc-label .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+    }
+    .rc.green  .dot { background: var(--green-head); }
+    .rc.yellow .dot { background: var(--yellow-head); }
+    .rc.gray   .dot { background: var(--gray-head); }
+    .rc.blue   .dot { background: var(--blue-head); }
+    .rc.purple .dot { background: var(--purple-head); }
+
+    .rc p, .rc li { font-size: .92rem; color: var(--text); line-height: 1.65; }
+    .rc ul { padding-left: 17px; display: flex; flex-direction: column; gap: 5px; }
+    .rc li::marker { color: var(--muted); }
+
+    /* stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px; margin-top: 4px;
+    }
+    .stat-col { border-left: 2px solid #c8daef; padding-left: 11px; }
+    .stat-col-label {
+      font-size: .73rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--blue-head);
+      display: flex; align-items: center; gap: 5px; margin-bottom: 7px;
+    }
+    .mini-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 17px; height: 17px; border-radius: 50%; font-size: .62rem; font-weight: 700;
+    }
+    .stat-item { margin-bottom: 9px; }
+    .stat-text { font-size: .87rem; color: var(--text); line-height: 1.5; }
+    .stat-src  { font-size: .73rem; color: var(--muted); margin-top: 2px; }
+
+    /* matches */
+    .matches-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .match-item {
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .match-badges { display: flex; gap: 4px; flex-shrink: 0; padding-top: 2px; }
+    .match-reason { font-size: .9rem; color: var(--text); line-height: 1.55; }
+
+    /* ── person badge palette ── */
+    .badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0; }
+
+    /* ────────────────────────────────────────────────────────────────
+       Footer
+    ──────────────────────────────────────────────────────────────── */
+    footer {
+      text-align: center; padding: 0 20px 40px;
+      color: var(--muted); font-size: .8rem;
+    }
+    footer em { font-style: italic; opacity: .8; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Common Ground</h1>
+  <p id="header-sub">Find what you actually agree on — even across divides.</p>
+  <div class="divider"></div>
+</header>
+
+<main>
+
+  <!-- ══════════════════════════════════════════
+       VIEW: SETUP  (host creates a session)
+  ══════════════════════════════════════════ -->
+  <div id="view-setup">
+    <div class="card">
+      <div class="field" style="margin-bottom:20px">
+        <label for="topic-select">Choose a topic</label>
+        <div class="topic-row">
+          <select id="topic-select">
+            <option value="custom">✏️ Type a custom topic…</option>
+            <optgroup label="🎉 Fun &amp; Culture">
+              <option value="The GOAT of Basketball">The GOAT of Basketball</option>
+              <option value="Best Music Decade">Best Music Decade (60s vs 90s vs 2000s)</option>
+              <option value="Movie Remakes">Movie Remakes — Good or Pointless?</option>
+              <option value="Pineapple on Pizza">Pineapple on Pizza</option>
+              <option value="Cats vs Dogs">Cats vs Dogs</option>
+              <option value="Best Fast Food Chain">Best Fast Food Chain</option>
+            </optgroup>
+            <optgroup label="⚖️ Politics &amp; Society">
+              <option value="Immigration">Immigration</option>
+              <option value="Gun Policy">Gun Policy</option>
+              <option value="Student Loan Forgiveness">Student Loan Forgiveness</option>
+              <option value="Housing Costs">Housing Costs</option>
+              <option value="Free Speech on Campus">Free Speech on Campus</option>
+              <option value="Climate Policy">Climate Policy</option>
+            </optgroup>
+          </select>
+          <input type="text" id="custom-topic" placeholder="e.g. Universal Basic Income" maxlength="80" style="display:none" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-create">Start Session</button>
+      </div>
+      <div class="error-box" id="setup-error"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       VIEW: ROOM  (host waiting room)
+  ══════════════════════════════════════════ -->
+  <div id="view-room">
+    <div class="card">
+      <div class="room-grid">
+        <!-- QR + code -->
+        <div class="qr-panel">
+          <img id="qr-img" src="" alt="QR code" />
+          <div class="session-code" id="room-code"></div>
+          <div class="join-url" id="room-url"></div>
+        </div>
+
+        <!-- Live submissions list -->
+        <div class="room-right">
+          <div>
+            <div class="room-topic" id="room-topic-label"></div>
+          </div>
+
+          <div>
+            <div class="submissions-label">
+              Responses <span class="count-badge" id="sub-count">0</span>
+            </div>
+            <ul class="submissions-list" id="sub-list">
+              <li class="sub-empty">Waiting for students to join…</li>
+            </ul>
+          </div>
+
+          <div class="btn-row left" style="margin-top:auto;padding-top:12px">
+            <button class="btn btn-primary" id="btn-analyze" disabled>
+              Analyze Responses
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="error-box" id="room-error"></div>
+    </div>
+
+    <!-- loading -->
+    <div id="loading-bar">
+      <span class="spinner-muted"></span> Analyzing all perspectives…
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         VIEW: RESULTS  (rendered inside room view)
+    ══════════════════════════════════════════ -->
+    <div id="view-results">
+      <div class="results-intro">
+        <strong id="result-topic-label"></strong>
+        Here's an honest look at where everyone stands.
+      </div>
+      <div class="result-cards" id="result-cards"></div>
+      <div class="btn-row" style="margin-top:24px">
+        <button class="btn btn-ghost" id="btn-new-session">Start a new session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       VIEW: STUDENT  (student submission form)
+  ══════════════════════════════════════════ -->
+  <div id="view-student">
+    <div class="card">
+      <div class="student-topic-box">
+        <div class="stlabel">Today's topic</div>
+        <div class="sttopic" id="student-topic-text">Loading…</div>
+      </div>
+
+      <div id="student-form">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="field">
+            <label for="student-name">Your name</label>
+            <input type="text" id="student-name" placeholder="First name or nickname" maxlength="60" />
+          </div>
+          <div class="field">
+            <label for="student-view">Your view</label>
+            <textarea id="student-view" placeholder="In 2–3 sentences, what do you actually believe about this, and why?" maxlength="800"></textarea>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:20px">
+          <button class="btn btn-primary" id="btn-submit-view">Submit My View</button>
+        </div>
+        <div class="error-box" id="student-error"></div>
+      </div>
+
+      <div class="success-box" id="student-success">
+        <div class="success-icon">✓</div>
+        <h2>Submitted!</h2>
+        <p>Waiting for the host to run the analysis…</p>
+        <div style="margin-top:14px"><span class="spinner-muted"></span></div>
+      </div>
+
+      <div id="student-results" style="display:none"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <em>"This tool doesn't try to change your mind. It just helps you see each other more clearly."</em>
+</footer>
+
+<script>
+  // ── Badge color palette ────────────────────────────────────────────
+  const BADGE_COLORS = [
+    { bg: '#dde6ed', fg: '#2d4a5e' },
+    { bg: '#e6dded', fg: '#4a2d5e' },
+    { bg: '#ddeae0', fg: '#1e4a2d' },
+    { bg: '#ede8dd', fg: '#4a3a1e' },
+    { bg: '#eddde0', fg: '#4a1e2d' },
+    { bg: '#e4eddd', fg: '#2d4a1e' },
+    { bg: '#dde8ed', fg: '#1e3a4a' },
+    { bg: '#edddea', fg: '#4a1e3a' },
+  ];
+
+  function badgeStyle(idx, size = 26) {
+    const c = BADGE_COLORS[idx % BADGE_COLORS.length];
+    return `background:${c.bg};color:${c.fg};width:${size}px;height:${size}px;font-size:${size * .38}px`;
+  }
+
+  // ── DOM refs ───────────────────────────────────────────────────────
+  const views = {
+    setup:   document.getElementById('view-setup'),
+    room:    document.getElementById('view-room'),
+    student: document.getElementById('view-student'),
+    results: document.getElementById('view-results'),
+  };
+
+  // ── Routing ────────────────────────────────────────────────────────
+  const joinCode = new URLSearchParams(location.search).get('join');
+  if (joinCode) {
+    showStudentView(joinCode.toUpperCase());
+  } else {
+    showView('setup');
+  }
+
+  function showView(name) {
+    Object.entries(views).forEach(([k, el]) => {
+      el.style.display = k === name ? 'block' : 'none';
+    });
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function showErr(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.style.display = 'block';
+  }
+  function clearErr(id) {
+    const el = document.getElementById(id);
+    el.textContent = ''; el.style.display = 'none';
+  }
+
+  // ── Topic select ───────────────────────────────────────────────────
+  const topicSel   = document.getElementById('topic-select');
+  const customInput= document.getElementById('custom-topic');
+
+  function syncTopic() {
+    const c = topicSel.value === 'custom';
+    customInput.style.display = c ? 'block' : 'none';
+    if (c) customInput.focus();
+  }
+  topicSel.addEventListener('change', syncTopic);
+  syncTopic();
+
+  function getSelectedTopic() {
+    return topicSel.value === 'custom' ? customInput.value.trim() : topicSel.value;
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  //  HOST: Create session
+  // ══════════════════════════════════════════════════════════════════
+  document.getElementById('btn-create').addEventListener('click', async () => {
+    clearErr('setup-error');
+    const topic = getSelectedTopic();
+    if (!topic) { showErr('setup-error', 'Please choose or enter a topic.'); return; }
+
+    const btn = document.getElementById('btn-create');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    try {
+      const [sessionRes, hostRes] = await Promise.all([
+        fetch('/api/sessions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic }),
+        }),
+        fetch('/api/host-info'),
+      ]);
+
+      const session  = await sessionRes.json();
+      const hostInfo = await hostRes.json();
+
+      if (session.error) throw new Error(session.error);
+
+      startHostRoom(session, hostInfo);
+    } catch (e) {
+      showErr('setup-error', 'Could not create session: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = 'Start Session';
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  //  HOST: Waiting room
+  // ══════════════════════════════════════════════════════════════════
+  let pollTimer = null;
+
+  function startHostRoom(session, hostInfo) {
+    showView('room');
+    views.results.style.display = 'none';
+
+    const joinURL = `http://${hostInfo.ip}:${hostInfo.port}/?join=${session.id}`;
+
+    document.getElementById('room-code').textContent = session.id;
+    document.getElementById('room-url').textContent  = joinURL;
+    document.getElementById('room-topic-label').textContent = session.topic;
+    document.getElementById('qr-img').src =
+      `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(joinURL)}&size=200x200&margin=10`;
+
+    // Poll for submissions
+    pollSubmissions(session.id);
+    pollTimer = setInterval(() => pollSubmissions(session.id), 4000);
+
+    // Analyze button
+    const btnAnalyze = document.getElementById('btn-analyze');
+    btnAnalyze.onclick = () => runAnalysis(session.id, session.topic);
+  }
+
+  async function pollSubmissions(sessionId) {
+    try {
+      const res  = await fetch(`/api/sessions/${sessionId}/submissions`);
+      const subs = await res.json();
+      renderSubList(subs);
+    } catch { /* silently ignore polling errors */ }
+  }
+
+  function renderSubList(subs) {
+    const list  = document.getElementById('sub-list');
+    const count = document.getElementById('sub-count');
+    const btn   = document.getElementById('btn-analyze');
+
+    count.textContent = subs.length;
+    btn.disabled = subs.length < 2;
+    btn.textContent = subs.length < 2
+      ? 'Analyze Responses'
+      : `Analyze ${subs.length} Response${subs.length > 1 ? 's' : ''}`;
+
+    if (!subs.length) {
+      list.innerHTML = '<li class="sub-empty">Waiting for students to join…</li>';
+      return;
+    }
+    list.innerHTML = subs.map((s, i) => `
+      <li class="sub-item">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge" style="${badgeStyle(i, 22)}">${i + 1}</span>
+          <span class="sub-name">${escHtml(s.person_name)}</span>
+        </div>
+        <div class="sub-preview">${escHtml(s.view)}</div>
+      </li>`).join('');
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  //  HOST: Run analysis
+  // ══════════════════════════════════════════════════════════════════
+  async function runAnalysis(sessionId, topic) {
+    clearErr('room-error');
+    const loadingBar = document.getElementById('loading-bar');
+    const btnAnalyze = document.getElementById('btn-analyze');
+    btnAnalyze.disabled = true;
+    loadingBar.style.display = 'block';
+    views.results.style.display = 'none';
+    clearInterval(pollTimer);
+
+    try {
+      // Get fresh submissions
+      const subRes = await fetch(`/api/sessions/${sessionId}/submissions`);
+      const subs   = await subRes.json();
+
+      const res    = await fetch(`/api/sessions/${sessionId}/analyze`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, submissions: subs }),
+      });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); }
+      catch { throw new Error(`Server returned (${res.status}): ${text.substring(0, 300)}`); }
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+
+      loadingBar.style.display = 'none';
+      renderResults(topic, subs, data);
+    } catch (e) {
+      loadingBar.style.display = 'none';
+      btnAnalyze.disabled = false;
+      showErr('room-error', 'Analysis failed: ' + e.message);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  //  Render results
+  // ══════════════════════════════════════════════════════════════════
+  function renderResults(topic, subs, data, cardsContainer) {
+    const cards = cardsContainer ?? document.getElementById('result-cards');
+    if (!cardsContainer) {
+      document.getElementById('result-topic-label').textContent = topic + ' — ';
+    }
+    cards.innerHTML = '';
+
+    // ── Card: Evidence for each side ─────────────────────────
+    const statsCard = makeCard('blue', 'Evidence for each side');
+    const statsGrid = document.createElement('div');
+    statsGrid.className = 'stats-grid';
+    (data.stats || []).forEach((personStats, idx) => {
+      const c   = BADGE_COLORS[idx % BADGE_COLORS.length];
+      const col = document.createElement('div');
+      col.className = 'stat-col';
+      col.innerHTML = `<div class="stat-col-label">
+        <span class="mini-badge" style="background:${c.bg};color:${c.fg}">${idx+1}</span>
+        ${escHtml(subs[idx]?.person_name ?? `Person ${idx+1}`)}
+      </div>`;
+      (personStats || []).slice(0, 2).forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'stat-item';
+        item.innerHTML = `<div class="stat-text">${escHtml(s.stat ?? s)}</div>`
+          + (s.source ? `<div class="stat-src">— ${escHtml(s.source)}</div>` : '');
+        col.appendChild(item);
+      });
+      statsGrid.appendChild(col);
+    });
+    statsCard.appendChild(statsGrid);
+    cards.appendChild(statsCard);
+
+    // ── Card: Shared ground ────────────────────────────────────
+    const sharedCard = makeCard('green', 'Where everyone actually agrees');
+    const ul = document.createElement('ul');
+    (data.shared || []).forEach(pt => {
+      const li = document.createElement('li'); li.textContent = pt; ul.appendChild(li);
+    });
+    sharedCard.appendChild(ul);
+    cards.appendChild(sharedCard);
+
+    // ── Card: Factual ──────────────────────────────────────────
+    const factCard = makeCard('yellow', 'Where you disagree on facts, not values');
+    const fp = document.createElement('p'); fp.textContent = data.factual || '';
+    factCard.appendChild(fp); cards.appendChild(factCard);
+
+    // ── Card: Values ───────────────────────────────────────────
+    const valCard = makeCard('gray', 'Where you genuinely see the world differently');
+    const vp = document.createElement('p'); vp.textContent = data.values || '';
+    valCard.appendChild(vp); cards.appendChild(valCard);
+
+    // ── Card: Find your match ──────────────────────────────────
+    if (data.matches?.length) {
+      const matchCard = makeCard('purple', 'Find your person — who thinks most like you?');
+      const matchList = document.createElement('div');
+      matchList.className = 'matches-list';
+      data.matches.forEach(m => {
+        const persons = Array.isArray(m.persons) ? m.persons : [];
+        const row = document.createElement('div');
+        row.className = 'match-item';
+        const badges = document.createElement('div');
+        badges.className = 'match-badges';
+        persons.forEach(pNum => {
+          const idx  = pNum - 1;
+          const c    = BADGE_COLORS[idx % BADGE_COLORS.length];
+          const name = subs[idx]?.person_name ?? `P${pNum}`;
+          badges.innerHTML += `<span class="badge" style="${badgeStyle(idx, 24)}" title="${escHtml(name)}">${pNum}</span>`;
+        });
+        const reason = document.createElement('div');
+        reason.className = 'match-reason';
+        // Show names then reason
+        const nameStr = persons.map(p => subs[p-1]?.person_name ?? `Person ${p}`).join(' & ');
+        reason.innerHTML = `<strong>${escHtml(nameStr)}</strong> — ${escHtml(m.reason)}`;
+        row.appendChild(badges); row.appendChild(reason);
+        matchList.appendChild(row);
+      });
+      matchCard.appendChild(matchList);
+      cards.appendChild(matchCard);
+    }
+
+    views.results.style.display = 'block';
+    views.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function makeCard(colorClass, labelText) {
+    const card = document.createElement('div');
+    card.className = `rc ${colorClass}`;
+    card.innerHTML = `<div class="rc-label"><span class="dot"></span>${escHtml(labelText)}</div>`;
+    return card;
+  }
+
+  // ── New session ────────────────────────────────────────────────────
+  document.getElementById('btn-new-session').addEventListener('click', () => {
+    clearInterval(pollTimer);
+    views.results.style.display = 'none';
+    showView('setup');
+    document.getElementById('btn-create').disabled = false;
+    document.getElementById('btn-create').textContent = 'Start Session';
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  //  STUDENT view
+  // ══════════════════════════════════════════════════════════════════
+  async function showStudentView(code) {
+    showView('student');
+    document.getElementById('header-sub').textContent =
+      "Share your honest perspective on today\u2019s topic.";
+
+    // Load session
+    try {
+      const res  = await fetch(`/api/sessions/${code}`);
+      const sess = await res.json();
+      if (sess.error) throw new Error(sess.error);
+      document.getElementById('student-topic-text').textContent = sess.topic;
+    } catch (e) {
+      document.getElementById('student-topic-text').textContent = 'Session not found.';
+      showErr('student-error', 'Could not load session: ' + e.message);
+      return;
+    }
+
+    // Submit handler
+    document.getElementById('btn-submit-view').addEventListener('click', async () => {
+      clearErr('student-error');
+      const name = document.getElementById('student-name').value.trim();
+      const view = document.getElementById('student-view').value.trim();
+
+      if (!name) { showErr('student-error', 'Please enter your name.'); return; }
+      if (!view) { showErr('student-error', 'Please enter your view.'); return; }
+
+      const btn = document.getElementById('btn-submit-view');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+
+      try {
+        const res  = await fetch(`/api/sessions/${code}/submissions`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, view }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        document.getElementById('student-form').style.display    = 'none';
+        document.getElementById('student-success').style.display = 'block';
+
+        // Poll until the host publishes results
+        pollForResults(code);
+      } catch (e) {
+        showErr('student-error', 'Submission failed: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = 'Submit My View';
+      }
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  //  STUDENT: Poll for results
+  // ══════════════════════════════════════════════════════════════════
+  let studentPollTimer = null;
+
+  async function pollForResults(code) {
+    studentPollTimer = setInterval(async () => {
+      try {
+        const res  = await fetch(`/api/sessions/${code}`);
+        const sess = await res.json();
+        if (sess.results) {
+          clearInterval(studentPollTimer);
+          showStudentResults(sess.topic, sess.results);
+        }
+      } catch { /* ignore poll errors */ }
+    }, 4000);
+  }
+
+  function showStudentResults(topic, data) {
+    document.getElementById('student-success').style.display = 'none';
+
+    const subs      = data.submissions || [];
+    const container = document.getElementById('student-results');
+    container.style.display = 'block';
+    container.innerHTML = `
+      <div class="results-intro" style="margin-top:20px">
+        <strong>${escHtml(topic)} — </strong>Here's an honest look at where everyone stands.
+      </div>
+      <div class="result-cards" id="student-result-cards"></div>`;
+
+    renderResults(topic, subs, data, document.getElementById('student-result-cards'));
+  }
+</script>
+</body>
+</html>
