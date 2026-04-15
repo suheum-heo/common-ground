@@ -42,9 +42,14 @@ function makeId() {
 
 // ── Routes ───────────────────────────────────────────────────────────
 
-// Host info — local IP so the browser can build the QR code URL
+// Host info — returns public base URL for QR codes
 app.get('/api/host-info', (_req, res) => {
-  res.json({ ip: getLocalIP(), port: PORT });
+  const publicUrl = process.env.RENDER_EXTERNAL_URL;
+  if (publicUrl) {
+    res.json({ baseUrl: publicUrl.replace(/\/$/, '') });
+  } else {
+    res.json({ baseUrl: `http://${getLocalIP()}:${PORT}` });
+  }
 });
 
 // Create session

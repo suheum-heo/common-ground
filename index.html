@@ -550,7 +550,7 @@
     showView('room');
     views.results.style.display = 'none';
 
-    const joinURL = `http://${hostInfo.ip}:${hostInfo.port}/?join=${session.id}`;
+    const joinURL = `${hostInfo.baseUrl}/?join=${session.id}`;
 
     document.getElementById('room-code').textContent = session.id;
     document.getElementById('room-url').textContent  = joinURL;
