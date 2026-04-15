@@ -1,5 +1,7 @@
 # Common Ground
 
+**Live at [common-ground-aezv.onrender.com](https://common-ground-aezv.onrender.com)**
+
 A classroom tool that finds genuine agreement across different perspectives — even across divides.
 
 A teacher creates a session and shares a QR code. Students scan it on their own phones, type their view on the topic, and submit. The teacher then runs an AI analysis that surfaces what everyone actually shares, what's a genuine values-level tension, and which students align most closely — so they can physically find each other in the room.
@@ -20,7 +22,18 @@ A teacher creates a session and shares a QR code. Students scan it on their own 
 - **Evidence for each person** — sourced facts supporting each participant's view
 - **Who to find** — pairings of students whose underlying values overlap most
 
-## Setup
+## Deploy
+
+The easiest way to run this yourself is [Render](https://render.com) (free tier):
+
+1. Fork this repo
+2. New Web Service → connect your fork
+3. Build command: `npm install` / Start command: `node server.js`
+4. Add environment variables: `NEON_URL` and `CLAUDE_KEY`
+
+Render sets `RENDER_EXTERNAL_URL` automatically — QR codes will point to your public URL.
+
+## Self-hosted setup
 
 ### Prerequisites
 
